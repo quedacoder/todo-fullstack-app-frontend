@@ -16,6 +16,7 @@ class HeaderComponent extends Component {
                     <ul className="nav col-12 col-md-auto mb-2 justify-content-center mb-md-0" style={{width: '50%'}}>
                         {isUserLoggedIn && <li><Link className="nav-link px-2 link-dark" to="/welcome/quedacoder@gmail.com">Home</Link></li>}
                         {isUserLoggedIn && <li><Link className="nav-link px-2 link-dark" to="/todos">Todos</Link></li>}
+                        {isUserLoggedIn && <li><Link className="nav-link px-2 link-dark" to="/todo">Create Todo Item</Link></li>}
                         
                     </ul>
                     <div className="col-md-3 text-end">

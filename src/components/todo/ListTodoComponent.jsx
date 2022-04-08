@@ -1,16 +1,68 @@
 import React, {Component} from "react";
+import TodoDataService from "./api/todo/TodoDataService.js";
+import AuthenticationService from "./AuthenticationService.js";
 
 class ListTodoComponent extends Component {
     
     constructor(props) {
         super(props)
+        this.handleSuccessTodoList = this.handleSuccessTodoList.bind(this)
+        this.handleError = this.handleError.bind(this)
+        this.deleteTodoClicked = this.deleteTodoClicked.bind(this)
+        this.updateClicked = this.updateClicked.bind(this)
         this.state = {
-            todo: [
-                {id: 1, description: 'Learn to Dance', done: false, targetDate: new Date(2022, 3, 15)},
-                {id: 2, description: 'Learn Become Expert at React', done: false, targetDate: new Date(2022, 6, 1)},
-                {id: 3, description: 'Move to Dallas', done: false, targetDate: new Date(2022, 11, 1)}
-            ]
+            todo: [],
+            errorMessage: '',
+            message: '',
+            isSuccess: false,
+            isError: false
         }
+    }
+
+    refreshTodos() {
+        let username = AuthenticationService.getLoggedInUserName()
+
+        if (username) {
+             TodoDataService.retrieveAllTodos(username)
+             .then(response => this.handleSuccessTodoList(response))
+             .catch(error => this.handleError(error))
+        }
+    }
+
+    componentDidMount() {
+        this.refreshTodos()
+    }
+
+    handleSuccessTodoList(response) {
+
+        console.log(response)
+        this.setState({
+            todo: response.data
+        })
+    }
+
+    handleError(error) {
+        console.log(error.response)
+        this.setState({
+            errorMessage: error.response.data.message,
+            isError: true
+        })
+    }
+
+    deleteTodoClicked(id) {
+        let username = AuthenticationService.getLoggedInUserName()
+        console.log(id + ' ' + username)
+        TodoDataService.deleteTodo(username, id)
+        .then(response => {
+            this.setState({ message: `Delete of todo ${id} successful!!!`,
+                            isSuccess: true })
+            this.refreshTodos()
+        })
+        .catch(error => this.handleError(error))
+    }
+
+    updateClicked(id) {
+        this.props.navigate(`/todo/${id}`);
     }
 
     render() {
@@ -24,6 +76,8 @@ class ListTodoComponent extends Component {
                                 <th>Description</th>
                                 <th>Done</th>
                                 <th>Target Date</th>
+                                <th>Delete</th>
+                                <th>Update</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -34,12 +88,20 @@ class ListTodoComponent extends Component {
                                         <td>{todo.description}</td>
                                         <td>{todo.done.toString()}</td>
                                         <td>{todo.targetDate.toString()}</td>
+                                        <td><button onClick={() => this.deleteTodoClicked(todo.id)} className="btn btn-warning">Delete</button></td>
+                                        <td><button onClick={() => this.updateClicked(todo.id)} className="btn btn-info">Update</button></td>
                                     </tr>
                                 )
                             }
                             
                         </tbody>
                     </table>
+                    <div className="container">
+                        {this.state.isError && <p className="alert alert-danger">{this.state.errorMessage}</p>}
+                    </div>
+                    <div className="container">
+                        {this.state.isSuccess && <p className="alert alert-success">{this.state.message}</p>}
+                    </div>
                </div>
             </div>
         )
